@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -76,16 +77,20 @@ WSGI_APPLICATION = 'profiles_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+#Read secret data
+SECRET_DATA = {}
+with open('secret-keys.json', 'r') as json_file:
+    SECRET_DATA = json.load(json_file)
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'profilesdb',
-        'USER': 'postgres',
-        'PASSWORD': '',
-        'HOST': 'localhost'
+        'ENGINE': SECRET_DATA["postgresql"]["ENGINE"],
+        'NAME': SECRET_DATA["postgresql"]["NAME"],
+        'USER': SECRET_DATA["postgresql"]["USER"],
+        'PASSWORD': SECRET_DATA["postgresql"]["PASSWORD"],
+        'HOST': SECRET_DATA["postgresql"]["HOST"]
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators

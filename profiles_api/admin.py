@@ -1,9 +1,11 @@
 from django.contrib import admin
-from profiles_api import models
+from .models import UserProfile, ProfileFeedItem
 
 
 class UserProfileAdmin(admin.ModelAdmin):
+    """Custom Fields for User Profile"""
     list_display = ('email', 'name', 'is_active', 'is_staff')
 
 
-admin.site.register(models.UserProfile, UserProfileAdmin)
+admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(ProfileFeedItem)
