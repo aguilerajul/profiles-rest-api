@@ -1,44 +1,38 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from profiles_api import serializers
+from rest_framework import viewsets, filters
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
+from profiles_api import serializers, models, permissions
 
 
-class HelloView(APIView):
-    """ Test view """
-    serializer_class = serializers.HelloSerializer
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """Handle creating and updating profiles"""
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
 
-    def get(self, request, format=None):
-        """ Test get api message """
-        an_apiview = [
-            'Test 1',
-            'Test 2'
-        ]
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnProfile,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name', 'email',)
 
-        return Response({'message': 'Hello', 'an_apiview': an_apiview})
+class UserLoginApiView(ObtainAuthToken):
+    """User Auth token"""
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
-    def post(self, request):
-        """Create a hello message with our name"""
-        serializer = self.serializer_class(data=request.data)
 
-        if serializer.is_valid():
-            name = serializer.validated_data.get('name')
-            message = f'Hello {name}!'
-            return Response({'message': message})
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    
-    def put(self, request, pk=None):
-        """Handle updating an object"""
-        return Response({'method': 'PUT'})
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    """Update, Get and create profile Items"""
+    authentication_classes = (TokenAuthentication, )
+    serializer_class = serializers.ProfileFeedItemSerializer
+    queryset = models.ProfileFeedItem.objects.all()
+    permission_classes = (
+        permissions.UpdateOwnStatus,
+        IsAuthenticated
+    )
 
-    def patch(self, request, pk=None):
-        """Handle a partial update of an object"""
-        return Response({'method': 'PATCH'})
-
-    def delete(self, request, pk=None):
-        """Handle to delete an object"""
-        return Response({'method': 'DELETE'})
+    def perform_create(self, serializer):
+        """
+        set user profile to logged user
+        """
+        serializer.save(user_profile=self.request.user)
